@@ -1,7 +1,9 @@
+// src/chat/ChatWindow.tsx (full updated file)
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import type { Message } from "./types";
 import MessageBubble from "./MessageBubble";
 import { mockAgent } from "../agent/mockAgent";
+import { validateA2UIPayload } from "../validation/validatePayload";
 import type { A2UIPayload } from "../types/a2ui";
 
 let msgIdCounter = 0;
@@ -15,7 +17,7 @@ const ChatWindow: React.FC = () => {
   const [agentThinking, setAgentThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -28,7 +30,6 @@ const ChatWindow: React.FC = () => {
     const userText = input.trim();
     if (!userText || agentThinking) return;
 
-    // Add user message
     addMessage({ sender: "user", text: userText });
     setInput("");
     setAgentThinking(true);
@@ -36,10 +37,17 @@ const ChatWindow: React.FC = () => {
     try {
       const payload: A2UIPayload | null = await mockAgent(userText);
       if (payload) {
-        // Agent responded with an interactive A2UI payload
-        addMessage({ sender: "agent", payload });
+        // Validate payload before rendering
+        const validation = validateA2UIPayload(payload);
+        if (!validation.valid) {
+          addMessage({
+            sender: "agent",
+            text: `⚠️ Received an invalid A2UI payload:\n${validation.errors.join("\n")}`,
+          });
+        } else {
+          addMessage({ sender: "agent", payload });
+        }
       } else {
-        // Agent has no matching payload, return a plain text fallback
         addMessage({
           sender: "agent",
           text: "I'm not sure how to help with that. Try asking for a booking form or an order status card.",
@@ -62,8 +70,6 @@ const ChatWindow: React.FC = () => {
     }
   };
 
-  // This is the callback passed to every embedded A2UIRenderer via MessageBubble.
-  // It creates a new chat message showing what event was fired.
   const handleA2UIEvent = useCallback(
     (eventName: string, componentId: string, data?: Record<string, any>) => {
       const dataStr = data ? JSON.stringify(data, null, 1) : "no data";
@@ -84,7 +90,7 @@ const ChatWindow: React.FC = () => {
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
         {messages.length === 0 && (
           <p className="text-gray-400 text-center text-sm">Send a message to start.</p>
         )}
@@ -93,8 +99,9 @@ const ChatWindow: React.FC = () => {
         ))}
         {agentThinking && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3 text-sm text-gray-500 animate-pulse">
-              Agent is typing…
+            <div className="bg-gray-100 rounded-lg p-4 w-40 animate-pulse space-y-2">
+              <div className="h-2 bg-gray-300 rounded w-3/4"></div>
+              <div className="h-2 bg-gray-300 rounded w-1/2"></div>
             </div>
           </div>
         )}
@@ -102,7 +109,7 @@ const ChatWindow: React.FC = () => {
       </div>
 
       {/* Input area */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+      <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
         <div className="flex gap-2">
           <input
             type="text"

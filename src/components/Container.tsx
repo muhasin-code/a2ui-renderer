@@ -10,10 +10,15 @@ interface ContainerProps {
 
 const Container: React.FC<ContainerProps> = ({ id, children, direction = "column" }) => {
   const flexDirection = direction === "row" ? "flex-row" : "flex-col";
+  const wrapClass = direction === "row" ? "flex-wrap" : "";
+
   return (
-    <div id={id} className={`flex ${flexDirection} gap-4 p-4`}>
+    <div
+      id={id}
+      className={`flex ${flexDirection} ${wrapClass} gap-4 p-4`}
+    >
       {children.map((child) => (
-        <A2UINode key={child.id} component={child} />  // <-- changed
+        <A2UINode key={child.id} component={child} />
       ))}
     </div>
   );
