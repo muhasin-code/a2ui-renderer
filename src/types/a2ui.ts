@@ -41,12 +41,11 @@ export interface Text extends BaseComponent {
 
 export interface Button extends BaseComponent {
   type: "button";
-  /** Label shown on the button. */
   label: string;
-  /** Name of the event to trigger when clicked (e.g., "submit", "cancel"). */
   event: string;
-  /** Optional visual variant. */
   variant?: "primary" | "secondary";
+  /** If "submit", the button won't fire its own event; the form handles it. */
+  buttonType?: "button" | "submit";
 }
 
 export interface TextField extends BaseComponent {

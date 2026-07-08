@@ -6,9 +6,16 @@ interface ButtonProps {
   label: string;
   event: string;
   variant?: "primary" | "secondary";
+  buttonType?: "button" | "submit";
 }
 
-const Button: React.FC<ButtonProps> = ({ id, label, event, variant = "primary" }) => {
+const Button: React.FC<ButtonProps> = ({
+  id,
+  label,
+  event,
+  variant = "primary",
+  buttonType = "button",
+}) => {
   const { triggerEvent } = useA2UIContext();
 
   const baseClasses =
@@ -24,11 +31,19 @@ const Button: React.FC<ButtonProps> = ({ id, label, event, variant = "primary" }
       break;
   }
 
+  const handleClick = () => {
+    // Only fire the event if the button is not a form submit button
+    if (buttonType !== "submit") {
+      triggerEvent(event, id);
+    }
+  };
+
   return (
     <button
       id={id}
+      type={buttonType}
       className={`${baseClasses} ${colorClasses}`}
-      onClick={() => triggerEvent(event, id)}
+      onClick={handleClick}
     >
       {label}
     </button>

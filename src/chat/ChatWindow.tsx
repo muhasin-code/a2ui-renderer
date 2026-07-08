@@ -1,4 +1,3 @@
-// src/chat/ChatWindow.tsx (full updated file)
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import type { Message } from "./types";
 import MessageBubble from "./MessageBubble";
@@ -17,7 +16,7 @@ const ChatWindow: React.FC = () => {
   const [agentThinking, setAgentThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -30,12 +29,14 @@ const ChatWindow: React.FC = () => {
     const userText = input.trim();
     if (!userText || agentThinking) return;
 
+    // Add user message
     addMessage({ sender: "user", text: userText });
     setInput("");
     setAgentThinking(true);
 
     try {
       const payload: A2UIPayload | null = await mockAgent(userText);
+
       if (payload) {
         // Validate payload before rendering
         const validation = validateA2UIPayload(payload);
@@ -48,9 +49,15 @@ const ChatWindow: React.FC = () => {
           addMessage({ sender: "agent", payload });
         }
       } else {
+        // No matching payload – show the helpful fallback
         addMessage({
           sender: "agent",
-          text: "I'm not sure how to help with that. Try asking for a booking form or an order status card.",
+          text:
+            "I can help you book a flight ✈️, check an order status 📦, or get support 📧.\n\n" +
+            "Try typing something like:\n" +
+            "• “book a flight”\n" +
+            "• “show order status”\n" +
+            "• “contact support”",
         });
       }
     } catch (err) {
@@ -86,13 +93,17 @@ const ChatWindow: React.FC = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
         <h2 className="font-semibold text-gray-700">A2UI Chat Demo</h2>
-        <p className="text-xs text-gray-500">Try “book a flight” or “show status”</p>
+        <p className="text-xs text-gray-500">
+          Try “book a flight”, “show order status”, or “contact support”
+        </p>
       </div>
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
         {messages.length === 0 && (
-          <p className="text-gray-400 text-center text-sm">Send a message to start.</p>
+          <p className="text-gray-400 text-center text-sm">
+            Send a message to start. I can help you book, track, or get support.
+          </p>
         )}
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} onEvent={handleA2UIEvent} />
