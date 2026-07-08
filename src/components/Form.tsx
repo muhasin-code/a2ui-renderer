@@ -1,23 +1,23 @@
 import React from "react";
 import type { A2UIComponent } from "../types/a2ui";
-import A2UIRenderer from "../renderer/A2UIRenderer";
+import A2UINode from "../renderer/A2UINode";
+import { useA2UIContext } from "../renderer/A2UIContext";
 
 interface FormProps {
   id: string;
   children: A2UIComponent[];
   submitEvent?: string;
-  onSubmit?: (eventName: string, componentId: string, formData: Record<string, any>) => void;
 }
 
-const Form: React.FC<FormProps> = ({ id, children, submitEvent = "submit", onSubmit }) => {
+const Form: React.FC<FormProps> = ({ id, children, submitEvent = "submit" }) => {
+  const { formState, triggerEvent } = useA2UIContext();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // For now, just log; full data collection comes in Milestone 3
-    if (onSubmit) {
-      onSubmit(submitEvent, id, {});
-    } else {
-      console.log(`Form submitted: event=${submitEvent}, id=${id}`);
-    }
+    // Collect form data: only the fields that appear in the children (this is a simple approach)
+    // We can just pass the entire formState, which includes all fields in the whole tree.
+    // That's fine for a demo.
+    triggerEvent(submitEvent, id, { ...formState });
   };
 
   return (
@@ -27,7 +27,7 @@ const Form: React.FC<FormProps> = ({ id, children, submitEvent = "submit", onSub
       className="flex flex-col gap-4 p-4 border border-gray-200 rounded-lg bg-gray-50"
     >
       {children.map((child) => (
-        <A2UIRenderer key={child.id} component={child} />
+        <A2UINode key={child.id} component={child} />
       ))}
     </form>
   );

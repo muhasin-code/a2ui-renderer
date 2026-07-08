@@ -1,20 +1,16 @@
 import React from "react";
+import { useA2UIContext } from "../renderer/A2UIContext";
 
 interface ButtonProps {
   id: string;
   label: string;
   event: string;
   variant?: "primary" | "secondary";
-  onClick?: (eventName: string, componentId: string) => void; // will be wired in Milestone 3
 }
 
-const Button: React.FC<ButtonProps> = ({
-  id,
-  label,
-  event,
-  variant = "primary",
-  onClick,
-}) => {
+const Button: React.FC<ButtonProps> = ({ id, label, event, variant = "primary" }) => {
+  const { triggerEvent } = useA2UIContext();
+
   const baseClasses =
     "px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
   let colorClasses = "";
@@ -28,19 +24,11 @@ const Button: React.FC<ButtonProps> = ({
       break;
   }
 
-  const handleClick = () => {
-    if (onClick) {
-      onClick(event, id);
-    } else {
-      console.log(`Button clicked: event=${event}, id=${id}`);
-    }
-  };
-
   return (
     <button
       id={id}
       className={`${baseClasses} ${colorClasses}`}
-      onClick={handleClick}
+      onClick={() => triggerEvent(event, id)}
     >
       {label}
     </button>

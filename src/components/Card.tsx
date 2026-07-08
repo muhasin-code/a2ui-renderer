@@ -1,6 +1,6 @@
 import React from "react";
 import type { A2UIComponent } from "../types/a2ui";
-import A2UIRenderer from "../renderer/A2UIRenderer";
+import A2UINode from "../renderer/A2UINode";
 
 interface CardProps {
   id: string;
@@ -19,7 +19,7 @@ const Card: React.FC<CardProps> = ({ id, title, children }) => {
       )}
       <div className="flex flex-col gap-3">
         {children.map((child) => (
-          <A2UIRenderer key={child.id} component={child} />
+          <A2UINode key={child.id} component={child} />
         ))}
       </div>
     </div>

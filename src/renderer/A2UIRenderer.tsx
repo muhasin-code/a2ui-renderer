@@ -1,33 +1,44 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import type { A2UIComponent } from "../types/a2ui";
-import registry from "./registry";
+import A2UIContext from "./A2UIContext";
+import A2UINode from "./A2UINode";
 
 interface A2UIRendererProps {
-  /** The A2UI component node to render. */
   component: A2UIComponent;
+  onEvent?: (eventName: string, componentId: string, data?: Record<string, any>) => void;
+  initialState?: Record<string, string>;
 }
 
 /**
- * Recursive renderer for A2UI component trees.
- * Looks up the component type in the registry and renders it,
- * passing through all payload props.
+ * Root renderer for an A2UI tree. Creates the shared form state
+ * and event context, then delegates rendering to A2UINode.
  */
-const A2UIRenderer: React.FC<A2UIRendererProps> = ({ component }) => {
-  // We are guaranteed a type discriminant by the union definition.
-  const Component = registry[component.type];
+const A2UIRenderer: React.FC<A2UIRendererProps> = ({
+  component,
+  onEvent,
+  initialState,
+}) => {
+  const [formState, setFormState] = useState<Record<string, string>>(initialState || {});
 
-  if (!Component) {
-    // Graceful fallback if an unknown type sneaks in (shouldn't happen with proper types)
-    return (
-      <div className="p-2 border border-red-300 bg-red-50 text-red-700 rounded">
-        Unknown component type: <code>{component.type}</code>
-      </div>
-    );
-  }
+  const setFormValue = useCallback((id: string, value: string) => {
+    setFormState((prev) => ({ ...prev, [id]: value }));
+  }, []);
 
-  // Casting to any is safe because we know the component's expected props
-  // align with the union member. We spread the component object as props.
-  return <Component {...(component as any)} />;
+  const triggerEvent = useCallback(
+    (eventName: string, componentId: string, data?: Record<string, any>) => {
+      if (onEvent) {
+        onEvent(eventName, componentId, data);
+      }
+      console.log(`[A2UI Event] ${eventName} from ${componentId}`, data || {});
+    },
+    [onEvent]
+  );
+
+  return (
+    <A2UIContext.Provider value={{ formState, setFormValue, triggerEvent }}>
+      <A2UINode component={component} />
+    </A2UIContext.Provider>
+  );
 };
 
 export default A2UIRenderer;

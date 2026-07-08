@@ -1,28 +1,27 @@
 import React from "react";
+import { useA2UIContext } from "../renderer/A2UIContext";
 
 interface TextFieldProps {
   id: string;
   label: string;
-  value: string;
+  value: string;          // this is the initial/static value (ignored if context provides state)
   fieldType?: "text" | "email" | "password" | "number";
   placeholder?: string;
-  onChange?: (id: string, newValue: string) => void; // will be wired in Milestone 3
 }
 
 const TextField: React.FC<TextFieldProps> = ({
   id,
   label,
-  value,
+  value: initialValue,
   fieldType = "text",
   placeholder,
-  onChange,
 }) => {
+  const { formState, setFormValue } = useA2UIContext();
+  // Use context value if present, otherwise fall back to prop value
+  const currentValue = formState[id] !== undefined ? formState[id] : initialValue;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (onChange) {
-      onChange(id, e.target.value);
-    } else {
-      console.log(`TextField ${id} changed to: ${e.target.value}`);
-    }
+    setFormValue(id, e.target.value);
   };
 
   return (
@@ -33,7 +32,7 @@ const TextField: React.FC<TextFieldProps> = ({
       <input
         id={id}
         type={fieldType}
-        value={value}
+        value={currentValue}
         placeholder={placeholder}
         onChange={handleChange}
         className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
